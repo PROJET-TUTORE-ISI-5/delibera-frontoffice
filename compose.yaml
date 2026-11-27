@@ -1,0 +1,22 @@
+# Client web en conteneur, en local (image construite depuis le Dockerfile).
+#   docker compose up -d --build      puis http://localhost:3000/app
+#   docker compose logs -f front
+#   docker compose down
+#
+# L'API doit tourner sur le poste (delibera-core-api : mvnw spring-boot:run, ou
+# « docker compose --profile api up -d » dans son dossier) : elle est jointe par host.docker.internal.
+# Pour écrire du code, préférez « pnpm dev » (rechargement à chaud) ; ce fichier sert à vérifier l'image.
+services:
+  front:
+    build:
+      context: .
+      args:
+        DELIBERA_VERSION: local
+    image: delibera-frontoffice:local
+    environment:
+      DELIBERA_API_URL: http://host.docker.internal:8080
+      DELIBERA_COOKIES_SECURISES: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000"

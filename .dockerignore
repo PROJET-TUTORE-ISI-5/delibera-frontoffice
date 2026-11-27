@@ -1,0 +1,21 @@
+# Contexte de construction de l'image : seuls les sources et la configuration servent.
+node_modules/
+.next/
+coverage/
+.git/
+.github/
+.vscode/
+.idea/
+deploy/
+docs/
+.env*
+!.env.example
+*.md
+compose*.yaml
+Dockerfile
+**/*.test.ts
+**/*.test.tsx
+src/test/
+vitest.config.mts
+*.tsbuildinfo
+next-env.d.ts
