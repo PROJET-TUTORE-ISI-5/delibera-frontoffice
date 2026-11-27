@@ -1,0 +1,29 @@
+# Production sur l'EC2 : le client web en conteneur.
+# Copié par le pipeline dans /opt/delibera-front/releases/<version>/compose.yaml, puis lancé par la
+# commande delibera-front-compose de l'instance (installée par Terraform, dépôt infra) :
+#   sudo delibera-front-compose ps | logs -f front | restart front
+#
+# Valeurs lues dans les fichiers d'environnement passés à docker compose (--env-file) :
+#   /etc/delibera-front/delibera-front.env   réglages de l'instance (créé par Terraform)
+#   releases/<version>/version.env           DELIBERA_FRONT_IMAGE, l'image de cette version
+#
+# Le pipeline lance aussi ce fichier sur le runner (test de fumée de l'image) :
+# DELIBERA_FRONT_ENV_FILE y désigne un fichier temporaire.
+name: delibera-front
+
+services:
+  front:
+    image: ${DELIBERA_FRONT_IMAGE:?DELIBERA_FRONT_IMAGE manquant}
+    restart: unless-stopped
+    # Réseau de la machine : le serveur Next.js joint l'API sur 127.0.0.1:8080 (publiée sur la
+    # seule machine) et n'écoute lui-même que sur 127.0.0.1:3002, où Nginx relaie /app/.
+    # Aucun port n'est ouvert sur Internet (groupe de sécurité : 22 et 80 seulement).
+    network_mode: host
+    env_file:
+      - path: ${DELIBERA_FRONT_ENV_FILE:-/etc/delibera-front/delibera-front.env}
+        required: false
+    environment:
+      PORT: "3002"
+      HOSTNAME: 127.0.0.1
+    # Arrêt propre : les requêtes en cours se terminent.
+    stop_grace_period: 20s

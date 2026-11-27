@@ -1,0 +1,297 @@
+# CI/CD du client web Delibera, déployé en conteneur (infrastructure Terraform : dépôt PROJET-TUTORE-ISI-5/infra)
+#
+#  - push sur main ou develop, demande de fusion vers main ou develop :
+#      1. vérifications : ESLint, types TypeScript, tests Vitest (couverture), Prettier, construction Next.js
+#      2. image Docker, puis test de fumée : l'image démarre avec deploy/compose.prod.yaml,
+#         /app/sante répond UP, /app renvoie vers la connexion, le relais répond 401 sans session
+#  - push sur main : publication de l'image sur ghcr.io (étiquette = commit), puis déploiement sur l'EC2
+#      nouvelle version, contrôle de santé, retour arrière automatique, puis vérification depuis Internet
+#  - lancement manuel (Actions > CI/CD > Run workflow) sur main :
+#      « deployer » reconstruit et redéploie main ; « revenir » réactive la version précédente
+#
+# Dans GitHub, les mêmes réglages que delibera-core-api et delibera-ui (organisation ou dépôt) :
+#   variable EC2_HOST    IP publique de l'instance (terraform output -raw public_ip)
+#   secret   EC2_SSH_KEY clé privée SSH dont la clé publique a été passée à Terraform
+# Le registre ghcr.io utilise le jeton fourni par GitHub Actions : rien à créer.
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "deployer : reconstruire et redéployer main ; revenir : réactiver la version précédente"
+        type: choice
+        options: [deployer, revenir]
+        default: deployer
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  verifications:
+    name: Vérifications
+    if: github.event_name != 'workflow_dispatch' || inputs.action == 'deployer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: Installer pnpm (version de package.json)
+        uses: pnpm/action-setup@v6
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint
+        run: pnpm lint
+
+      - name: Types TypeScript
+        run: pnpm typecheck
+
+      - name: Mise en forme (Prettier)
+        run: pnpm format:verifier
+
+      - name: Tests (Vitest) et couverture
+        run: pnpm test:couverture
+
+      - name: Construction Next.js
+        run: pnpm build
+        env:
+          DELIBERA_VERSION: ${{ github.sha }}
+
+      - name: Publier le rapport de couverture
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: couverture
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  image:
+    name: Image Docker
+    needs: verifications
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.noms.outputs.image }}
+      version: ${{ steps.noms.outputs.version }}
+    env:
+      PUBLIER: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: Nommer l'image
+        id: noms
+        run: |
+          # ghcr.io impose des minuscules ; l'étiquette est le commit (12 caractères)
+          depot="ghcr.io/${GITHUB_REPOSITORY,,}"
+          version="${GITHUB_SHA::12}"
+          {
+            echo "depot=$depot"
+            echo "version=$version"
+            echo "image=$depot:$version"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Préparer Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Construire l'image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          push: false
+          provenance: false
+          build-args: |
+            DELIBERA_VERSION=${{ steps.noms.outputs.version }}
+          tags: ${{ steps.noms.outputs.image }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=delibera-frontoffice
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Tester l'image (configuration de production)
+        env:
+          DELIBERA_FRONT_IMAGE: ${{ steps.noms.outputs.image }}
+          VERSION: ${{ steps.noms.outputs.version }}
+        run: |
+          fichier="$RUNNER_TEMP/delibera-front.env"
+          # Aucune API sur le runner : le client web doit tout de même démarrer et répondre.
+          echo "DELIBERA_API_URL=http://127.0.0.1:9" > "$fichier"
+          export DELIBERA_FRONT_ENV_FILE="$fichier"
+          compose=(docker compose --project-name delibera-front-fumee -f deploy/compose.prod.yaml)
+          "${compose[@]}" config --quiet
+          "${compose[@]}" up -d
+          base=http://127.0.0.1:3002/app
+          sante=""
+          for _ in $(seq 1 30); do
+            sante="$(curl -fsS --max-time 5 "$base/sante" || true)"
+            case "$sante" in *'"status":"UP"'*) break ;; esac
+            sleep 2
+          done
+          echec() { "${compose[@]}" logs --no-color --tail 100 front; echo "::error::$1"; exit 1; }
+          case "$sante" in *"\"version\":\"$VERSION\""*) echo "✔ santé : $sante" ;; *) echec "l'image ne démarre pas (santé : ${sante:-aucune réponse})" ;; esac
+          code="$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "$base")"
+          case "$code" in "307 "*"/app/connexion") echo "✔ /app renvoie vers la connexion" ;; *) echec "/app : $code" ;; esac
+          curl -fsS "$base/connexion" | grep -q "Se connecter" || echec "page de connexion illisible"
+          code="$(curl -s -o /dev/null -w '%{http_code}' "$base/api/v1/moi")"
+          [ "$code" = 401 ] || echec "relais : $code au lieu de 401 sans session"
+          echo "✔ relais protégé (401 sans session)"
+          "${compose[@]}" down
+
+      - name: Se connecter à ghcr.io
+        if: env.PUBLIER == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publier l'image
+        if: env.PUBLIER == 'true'
+        env:
+          IMAGE: ${{ steps.noms.outputs.image }}
+          DEPOT: ${{ steps.noms.outputs.depot }}
+        run: |
+          docker push "$IMAGE"
+          docker tag "$IMAGE" "$DEPOT:main"
+          docker push "$DEPOT:main"
+          echo "✔ image publiée : $IMAGE"
+
+  deploy:
+    name: Déploiement sur EC2
+    needs: image
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.action == 'deployer'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    environment:
+      name: production
+      url: http://${{ vars.EC2_HOST }}/app
+    concurrency:
+      group: deploy-production-front
+      cancel-in-progress: false
+    steps:
+      - name: Récupérer les fichiers de déploiement
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: deploy
+
+      - name: Préparer SSH
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          test -n "$EC2_HOST" || { echo "::error::variable EC2_HOST manquante"; exit 1; }
+          test -n "$EC2_SSH_KEY" || { echo "::error::secret EC2_SSH_KEY manquant"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -T 15 -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Envoyer et activer la version
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          IMAGE: ${{ needs.image.outputs.image }}
+          JETON_REGISTRE: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          opts=(-i "$HOME/.ssh/deploy_key" -o BatchMode=yes -o ServerAliveInterval=30)
+          cp deploy/compose.prod.yaml "$RUNNER_TEMP/delibera-front-compose.yaml"
+          scp "${opts[@]}" "$RUNNER_TEMP/delibera-front-compose.yaml" "ubuntu@$EC2_HOST:/tmp/"
+          scp "${opts[@]}" deploy/remote-deploy.sh "ubuntu@$EC2_HOST:/tmp/delibera-front-deploy.sh"
+          # Le jeton passe par l'entrée standard (jamais dans la ligne de commande) ; il expire avec ce job.
+          # shellcheck disable=SC2029 # l'image et l'utilisateur sont calculés sur le runner : c'est voulu
+          printf '%s\n' "$JETON_REGISTRE" \
+            | ssh "${opts[@]}" "ubuntu@$EC2_HOST" "bash /tmp/delibera-front-deploy.sh deployer '$IMAGE' '$GITHUB_ACTOR'"
+
+      - name: Vérifier depuis Internet
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          VERSION: ${{ needs.image.outputs.version }}
+        run: |
+          # Nginx -> client web : la sonde doit annoncer la version qui vient d'être déployée.
+          sante=""
+          for _ in $(seq 1 10); do
+            sante="$(curl -fsS --max-time 5 "http://$EC2_HOST/app/sante" || true)"
+            case "$sante" in *"\"version\":\"$VERSION\""*) break ;; esac
+            sleep 3
+          done
+          case "$sante" in
+            *"\"version\":\"$VERSION\""*) echo "✔ client web en ligne : http://$EC2_HOST/app" ;;
+            *) echo "::error::réponse inattendue de http://$EC2_HOST/app/sante : ${sante:-aucune}"; exit 1 ;;
+          esac
+
+      - name: Nettoyer la clé
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+  rollback:
+    name: Retour à la version précédente
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.action == 'revenir'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: http://${{ vars.EC2_HOST }}/app
+    concurrency:
+      group: deploy-production-front
+      cancel-in-progress: false
+    steps:
+      - name: Récupérer le script de déploiement
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: deploy
+
+      - name: Préparer SSH
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          test -n "$EC2_HOST" || { echo "::error::variable EC2_HOST manquante"; exit 1; }
+          test -n "$EC2_SSH_KEY" || { echo "::error::secret EC2_SSH_KEY manquant"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -T 15 -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Réactiver la version précédente
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+        run: |
+          opts=(-i "$HOME/.ssh/deploy_key" -o BatchMode=yes -o ServerAliveInterval=30)
+          scp "${opts[@]}" deploy/remote-deploy.sh "ubuntu@$EC2_HOST:/tmp/delibera-front-deploy.sh"
+          ssh "${opts[@]}" "ubuntu@$EC2_HOST" "bash /tmp/delibera-front-deploy.sh revenir" < /dev/null
+
+      - name: Nettoyer la clé
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
