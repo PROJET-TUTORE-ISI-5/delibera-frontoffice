@@ -374,6 +374,7 @@ Vers `develop`, avec le modèle `.github/pull_request_template.md` : fonctionnal
 **Pièges de Next.js 16 pour un agent habitué à Next.js 13 à 15 :**
 - `middleware.ts` est remplacé par **`proxy.ts`** (fonction `proxy`, exécutée en Node.js).
 - `cookies()`, `headers()`, `params` et `searchParams` sont **asynchrones** : `await cookies()`, `const { id } = await params`.
+- Un formulaire qui dépend de l'adresse (`?suite=`, `?jeton=`) lit `searchParams` **dans la page, côté serveur**, sous `<Suspense>`, et reçoit la valeur en propriété. Avec `useSearchParams()` dans un composant client, le HTML ne contient que le squelette : le formulaire n'apparaît qu'après le chargement du JavaScript (et l'essai de fumée du pipeline échoue).
 - Avec **Cache Components**, une lecture de requête hors `<Suspense>` fait échouer `next build` (section 3.4).
 - `error.tsx` reçoit `{ error, retry }` (et non plus `reset` seul) ; `error` peut ne pas être une `Error`.
 - `next lint` n'existe plus : `pnpm lint` lance ESLint directement.

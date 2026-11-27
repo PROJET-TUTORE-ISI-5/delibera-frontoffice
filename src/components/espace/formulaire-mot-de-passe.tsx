@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 
 import { BoutonEnvoi, MessageFormulaire } from "@/components/espace/formulaire";
@@ -12,12 +11,13 @@ import { LONGUEUR_MIN_MOT_DE_PASSE } from "@/modules/securite/schemas";
 
 type Props = {
   action: (etat: EtatFormulaire, donnees: FormData) => Promise<EtatFormulaire>;
+  /** Jeton du lien reçu par e-mail (`?jeton=…`), lu par la page côté serveur. */
+  jeton: string;
   libelleBouton: string;
 };
 
-/** Choix d'un mot de passe à partir d'un lien reçu par e-mail (?jeton=…) : activation ou réinitialisation. */
-export function FormulaireNouveauMotDePasse({ action: serverAction, libelleBouton }: Props) {
-  const jeton = useSearchParams().get("jeton") ?? "";
+/** Choix d'un mot de passe à partir d'un lien reçu par e-mail : activation ou réinitialisation. */
+export function FormulaireNouveauMotDePasse({ action: serverAction, libelleBouton, jeton }: Props) {
   const [etat, action] = useActionState<EtatFormulaire, FormData>(serverAction, {});
 
   if (etat.succes) {

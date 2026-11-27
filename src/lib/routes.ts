@@ -46,3 +46,8 @@ export function suiteSure(suite: string | null | undefined): string {
   if (estRoutePublique(suite.split("?")[0] ?? "")) return ROUTES.accueil;
   return suite;
 }
+
+/** Première valeur d'un paramètre d'adresse (`?suite=…`, `?jeton=…`) ; chaîne vide s'il manque. */
+export function valeurParametre(valeur: string | string[] | undefined): string {
+  return (Array.isArray(valeur) ? valeur[0] : valeur) ?? "";
+}

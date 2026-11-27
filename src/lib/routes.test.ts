@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { estRoutePublique, ROUTES, suiteSure } from "./routes";
+import { estRoutePublique, ROUTES, suiteSure, valeurParametre } from "./routes";
 
 describe("suiteSure", () => {
   it("garde un chemin interne avec ses paramètres", () => {
@@ -38,5 +38,14 @@ describe("estRoutePublique", () => {
     expect(estRoutePublique("/deliberations")).toBe(false);
     expect(estRoutePublique("/connexionpiege")).toBe(false);
     expect(estRoutePublique(ROUTES.changerMotDePasse)).toBe(false);
+  });
+});
+
+describe("valeurParametre", () => {
+  it("rend la valeur, la première d'une liste, ou une chaîne vide", () => {
+    expect(valeurParametre("/deliberations")).toBe("/deliberations");
+    expect(valeurParametre(["a", "b"])).toBe("a");
+    expect(valeurParametre(undefined)).toBe("");
+    expect(valeurParametre([])).toBe("");
   });
 });

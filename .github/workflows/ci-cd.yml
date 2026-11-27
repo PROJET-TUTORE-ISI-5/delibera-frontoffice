@@ -158,7 +158,9 @@ jobs:
           case "$sante" in *"\"version\":\"$VERSION\""*) echo "✔ santé : $sante" ;; *) echec "l'image ne démarre pas (santé : ${sante:-aucune réponse})" ;; esac
           code="$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "$base")"
           case "$code" in "307 "*"/app/connexion") echo "✔ /app renvoie vers la connexion" ;; *) echec "/app : $code" ;; esac
-          curl -fsS "$base/connexion" | grep -q "Se connecter" || echec "page de connexion illisible"
+          # Pas de « curl | grep -q » : grep s'arrête au premier résultat, curl reçoit SIGPIPE et pipefail fait échouer l'étape.
+          page="$(curl -fsS "$base/connexion")" || echec "page de connexion : pas de réponse"
+          case "$page" in *"Se connecter"*) echo "✔ formulaire de connexion présent dans le HTML" ;; *) echec "formulaire de connexion absent du HTML rendu par le serveur" ;; esac
           code="$(curl -s -o /dev/null -w '%{http_code}' "$base/api/v1/moi")"
           [ "$code" = 401 ] || echec "relais : $code au lieu de 401 sans session"
           echo "✔ relais protégé (401 sans session)"

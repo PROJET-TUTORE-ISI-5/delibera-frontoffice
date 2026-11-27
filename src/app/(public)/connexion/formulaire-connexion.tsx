@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 
 import { BoutonEnvoi, MessageFormulaire } from "@/components/espace/formulaire";
@@ -9,9 +8,11 @@ import { InputField } from "@/components/ui/input-field";
 import { ROUTES } from "@/lib/routes";
 import { connecter, type EtatFormulaire } from "@/modules/securite/actions";
 
-/** CU00 – formulaire de connexion (e-mail et mot de passe). */
-export function FormulaireConnexion() {
-  const suite = useSearchParams().get("suite") ?? "";
+/**
+ * CU00 – formulaire de connexion (e-mail et mot de passe). `suite` vient de la page, lue côté
+ * serveur : le formulaire figure ainsi dans le HTML, avant le chargement du JavaScript.
+ */
+export function FormulaireConnexion({ suite }: { suite: string }) {
   const [etat, action] = useActionState<EtatFormulaire, FormData>(connecter, {});
 
   return (

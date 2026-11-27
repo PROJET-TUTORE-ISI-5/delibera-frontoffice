@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useActionState, useState } from "react";
 
 import { BoutonEnvoi, MessageFormulaire } from "@/components/espace/formulaire";
@@ -8,8 +7,8 @@ import { FieldError } from "@/components/ui/field";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { verifierCode, type EtatFormulaire } from "@/modules/securite/actions";
 
-export function FormulaireCode() {
-  const suite = useSearchParams().get("suite") ?? "";
+/** CU00 – saisie du code de double authentification ; `suite` est lue par la page, côté serveur. */
+export function FormulaireCode({ suite }: { suite: string }) {
   const [code, setCode] = useState("");
   const [etat, action] = useActionState<EtatFormulaire, FormData>(verifierCode, {});
 
