@@ -1,3 +1,7 @@
+# Consignes pour les agents
+
+Les consignes du projet sont dans [`AGENT.md`](./AGENT.md) : lisez-le en entier avant toute modification. Le bloc ci-dessous est ajouté par Next.js ; il complète `AGENT.md` sans le remplacer.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
