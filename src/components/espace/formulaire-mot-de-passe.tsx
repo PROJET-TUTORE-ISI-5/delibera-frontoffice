@@ -24,7 +24,10 @@ export function FormulaireNouveauMotDePasse({ action: serverAction, libelleBouto
     return (
       <div className="flex flex-col gap-4">
         <MessageFormulaire message={etat.message} succes />
-        <Link href={ROUTES.connexion} className="text-center text-sm text-brand-blue hover:underline">
+        <Link
+          href={ROUTES.connexion}
+          className="text-center text-sm text-brand-blue hover:underline"
+        >
           Aller à la connexion
         </Link>
       </div>

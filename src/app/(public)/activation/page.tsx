@@ -14,7 +14,10 @@ export default function PageActivation() {
     <Card>
       <CardHeader>
         <CardTitle>Activer votre compte</CardTitle>
-        <CardDescription>Choisissez le mot de passe de votre compte. Le lien d&apos;activation est valable 72 heures.</CardDescription>
+        <CardDescription>
+          Choisissez le mot de passe de votre compte. Le lien d&apos;activation est valable 72
+          heures.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Suspense fallback={<Skeleton className="h-48 w-full" />}>

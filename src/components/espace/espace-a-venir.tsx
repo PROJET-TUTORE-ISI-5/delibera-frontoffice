@@ -50,7 +50,9 @@ export function EspaceAVenir(props: Props) {
           <Card>
             <CardHeader>
               <CardTitle>Cadre de l&apos;espace</CardTitle>
-              <CardDescription>Repris du cahier d&apos;analyse et du cahier de conception.</CardDescription>
+              <CardDescription>
+                Repris du cahier d&apos;analyse et du cahier de conception.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 text-sm sm:grid-cols-3">
               <section>

@@ -5,7 +5,11 @@
  */
 export function GET() {
   return Response.json(
-    { status: "UP", application: "delibera-frontoffice", version: process.env.NEXT_PUBLIC_DELIBERA_VERSION ?? "dev" },
+    {
+      status: "UP",
+      application: "delibera-frontoffice",
+      version: process.env.NEXT_PUBLIC_DELIBERA_VERSION ?? "dev",
+    },
     { headers: { "cache-control": "no-store" } },
   );
 }

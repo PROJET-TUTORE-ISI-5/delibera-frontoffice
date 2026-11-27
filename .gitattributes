@@ -1,0 +1,11 @@
+# Fins de ligne LF partout (les scripts tournent sous Linux, dans Docker et sur l'EC2), même depuis Windows.
+* text=auto eol=lf
+*.sh text eol=lf
+
+# Fichiers binaires
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
+*.pdf binary
+*.xlsx binary

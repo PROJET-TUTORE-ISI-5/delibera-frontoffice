@@ -8,7 +8,8 @@ export default function CompteLayout({ children }: LayoutProps<"/">) {
       <BrandLogo name="Delibera" size="lg" />
       <main className="w-full max-w-sm">{children}</main>
       <p className="text-xs text-fg-tertiary">
-        Plateforme de délibération des étudiants · version {process.env.NEXT_PUBLIC_DELIBERA_VERSION}
+        Plateforme de délibération des étudiants · version{" "}
+        {process.env.NEXT_PUBLIC_DELIBERA_VERSION}
       </p>
     </LinearBackground>
   );

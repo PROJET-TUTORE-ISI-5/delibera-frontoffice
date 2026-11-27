@@ -35,7 +35,8 @@ export async function appelerApi<T>(chemin: `/${string}`, options: OptionsAppel 
 
   const url = new URL(`${config.apiUrl}/api/v1${chemin}`);
   for (const [cle, valeur] of Object.entries(options.parametres ?? {})) {
-    if (valeur !== undefined && valeur !== null && valeur !== "") url.searchParams.set(cle, String(valeur));
+    if (valeur !== undefined && valeur !== null && valeur !== "")
+      url.searchParams.set(cle, String(valeur));
   }
 
   const enTetes: Record<string, string> = { accept: "application/json" };
@@ -61,11 +62,16 @@ export async function appelerApi<T>(chemin: `/${string}`, options: OptionsAppel 
   }
 
   if (!reponse.ok) throw await erreurDepuisReponse(reponse);
-  if (reponse.status === 204 || reponse.headers.get("content-length") === "0") return undefined as T;
+  if (reponse.status === 204 || reponse.headers.get("content-length") === "0")
+    return undefined as T;
   try {
     return (await reponse.json()) as T;
   } catch {
-    throw new ErreurApi({ status: 502, code: CODES_CLIENT.REPONSE_INVALIDE, title: "Réponse illisible" });
+    throw new ErreurApi({
+      status: 502,
+      code: CODES_CLIENT.REPONSE_INVALIDE,
+      title: "Réponse illisible",
+    });
   }
 }
 

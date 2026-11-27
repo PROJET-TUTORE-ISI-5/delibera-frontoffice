@@ -85,7 +85,9 @@ async function NomEcole() {
 
 async function Utilisateur() {
   const moi = await lireMoi();
-  return <MenuUtilisateur nom={`${moi.prenom} ${moi.nom}`} role={libelleRole(moi)} email={moi.email} />;
+  return (
+    <MenuUtilisateur nom={`${moi.prenom} ${moi.nom}`} role={libelleRole(moi)} email={moi.email} />
+  );
 }
 
 async function Menu() {

@@ -1,0 +1,11 @@
+# Générés ou maintenus ailleurs
+.next/
+coverage/
+pnpm-lock.yaml
+next-env.d.ts
+src/components/ui/
+src/lib/utils.ts
+src/lib/with-ref.ts
+src/app/globals.css
+# Documents : mise en forme libre
+*.md

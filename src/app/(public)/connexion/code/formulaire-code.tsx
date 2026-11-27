@@ -18,7 +18,13 @@ export function FormulaireCode() {
       <input type="hidden" name="suite" value={suite} />
       <input type="hidden" name="code" value={code} />
       <MessageFormulaire message={etat.message} />
-      <InputOTP maxLength={6} value={code} onChange={setCode} aria-label="Code à 6 chiffres" autoFocus>
+      <InputOTP
+        maxLength={6}
+        value={code}
+        onChange={setCode}
+        aria-label="Code à 6 chiffres"
+        autoFocus
+      >
         <InputOTPGroup>
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <InputOTPSlot key={i} index={i} />

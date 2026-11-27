@@ -22,7 +22,20 @@ export default function PageDeliberations() {
       ]}
       permissions={["DOSSIER_CONSULTER", "PREDELIB_LANCER", "JURY_CONSTITUER"]}
       jury
-      composants={["AppShell", "PageHeader", "FilterBar", "SelectMenu", "StatCard", "DataGrid", "DecisionBadge", "Sheet", "CreditGauge", "DecisionRadioGroup", "MultiSelect", "ConfirmButton"]}
+      composants={[
+        "AppShell",
+        "PageHeader",
+        "FilterBar",
+        "SelectMenu",
+        "StatCard",
+        "DataGrid",
+        "DecisionBadge",
+        "Sheet",
+        "CreditGauge",
+        "DecisionRadioGroup",
+        "MultiSelect",
+        "ConfirmButton",
+      ]}
     />
   );
 }

@@ -53,7 +53,10 @@ async function EspacesAccessibles() {
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {espaces.map(({ href, libelle, icone: Icone, module }) => (
           <li key={href}>
-            <Link href={href} className="block rounded-(--radius-card) outline-none focus-visible:shadow-(--shadow-focus)">
+            <Link
+              href={href}
+              className="block rounded-(--radius-card) outline-none focus-visible:shadow-(--shadow-focus)"
+            >
               <Card className="h-full transition-shadow hover:shadow-(--shadow-pop)">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

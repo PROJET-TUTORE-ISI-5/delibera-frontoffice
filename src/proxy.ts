@@ -68,7 +68,11 @@ export async function proxy(request: NextRequest) {
   }
 
   const suite = `${chemin}${request.nextUrl.search}`;
-  const reponse = rediriger(request, ROUTES.connexion, chemin === ROUTES.accueil ? undefined : suite);
+  const reponse = rediriger(
+    request,
+    ROUTES.connexion,
+    chemin === ROUTES.accueil ? undefined : suite,
+  );
   if (renouvellement) effacerSession(reponse);
   return reponse;
 }

@@ -37,7 +37,10 @@ export function formaterDate(iso: string | null | undefined, fuseau = FUSEAU_PAR
 }
 
 /** Date-heure ISO (UTC) -> « 27/11/2026 14:05 » dans le fuseau de l'école. */
-export function formaterDateHeure(iso: string | null | undefined, fuseau = FUSEAU_PAR_DEFAUT): string {
+export function formaterDateHeure(
+  iso: string | null | undefined,
+  fuseau = FUSEAU_PAR_DEFAUT,
+): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";

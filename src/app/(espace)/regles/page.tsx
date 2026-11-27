@@ -12,11 +12,17 @@ export default function PageRegles() {
       description="Règles versionnées par niveau, filière ou spécialité : conditions, combinaison ET/OU, seuils limites."
       module="M4 – Règles et paramètres"
       iteration={2}
-      cas={[
-        { code: "CU02", libelle: "Gérer les règles de passage" },
-      ]}
+      cas={[{ code: "CU02", libelle: "Gérer les règles de passage" }]}
       permissions={["REGLE_GERER"]}
-      composants={["Combobox", "ToggleGroup", "Select", "Switch", "Button (dashed)", "Card", "Badge"]}
+      composants={[
+        "Combobox",
+        "ToggleGroup",
+        "Select",
+        "Switch",
+        "Button (dashed)",
+        "Card",
+        "Badge",
+      ]}
     />
   );
 }

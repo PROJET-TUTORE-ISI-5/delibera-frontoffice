@@ -12,9 +12,7 @@ export default function PageParametres() {
       description="Crédits, note de validation, note éliminatoire, rattrapage, délai de réclamation, par école, cycle ou niveau."
       module="M4 – Règles et paramètres"
       iteration={2}
-      cas={[
-        { code: "CU13", libelle: "Gérer les paramètres de délibération" },
-      ]}
+      cas={[{ code: "CU13", libelle: "Gérer les paramètres de délibération" }]}
       permissions={["PARAM_GERER"]}
       composants={["SettingsPanel", "Switch", "Slider", "DatePicker"]}
     />

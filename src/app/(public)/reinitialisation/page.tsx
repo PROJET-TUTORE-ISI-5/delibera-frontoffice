@@ -14,7 +14,10 @@ export default function PageReinitialisation() {
     <Card>
       <CardHeader>
         <CardTitle>Nouveau mot de passe</CardTitle>
-        <CardDescription>Choisissez votre nouveau mot de passe. Le lien reçu est valable 30 minutes et ne sert qu&apos;une fois.</CardDescription>
+        <CardDescription>
+          Choisissez votre nouveau mot de passe. Le lien reçu est valable 30 minutes et ne sert
+          qu&apos;une fois.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Suspense fallback={<Skeleton className="h-48 w-full" />}>

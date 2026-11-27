@@ -16,7 +16,9 @@ export default function PageMotDePasseOublie() {
     <Card>
       <CardHeader>
         <CardTitle>Mot de passe oublié</CardTitle>
-        <CardDescription>Recevez par e-mail un lien pour choisir un nouveau mot de passe.</CardDescription>
+        <CardDescription>
+          Recevez par e-mail un lien pour choisir un nouveau mot de passe.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={action} className="flex flex-col gap-4" noValidate>
@@ -35,7 +37,10 @@ export default function PageMotDePasseOublie() {
               <BoutonEnvoi className="w-full">Envoyer le lien</BoutonEnvoi>
             </>
           )}
-          <Link href={ROUTES.connexion} className="text-center text-sm text-brand-blue hover:underline">
+          <Link
+            href={ROUTES.connexion}
+            className="text-center text-sm text-brand-blue hover:underline"
+          >
             Retour à la connexion
           </Link>
         </form>

@@ -42,7 +42,9 @@ export type EtatFormulaire = {
 const MESSAGE_IDENTIFIANTS = "Adresse e-mail ou mot de passe incorrect, ou compte indisponible.";
 
 function erreursDeValidation(erreur: z.ZodError): Record<string, string> {
-  return Object.fromEntries(erreur.issues.map((i) => [String(i.path[0] ?? "formulaire"), i.message]));
+  return Object.fromEntries(
+    erreur.issues.map((i) => [String(i.path[0] ?? "formulaire"), i.message]),
+  );
 }
 
 function messageDe(erreur: unknown, parDefaut: string): string {
@@ -72,7 +74,10 @@ export async function connecter(_etat: EtatFormulaire, donnees: FormData): Promi
     if (estErreurApi(erreur) && [400, 401, 403, 404, 422, 423].includes(erreur.status)) {
       return { message: MESSAGE_IDENTIFIANTS, valeurs };
     }
-    return { message: messageDe(erreur, "La connexion a échoué. Réessayez dans un instant."), valeurs };
+    return {
+      message: messageDe(erreur, "La connexion a échoué. Réessayez dans un instant."),
+      valeurs,
+    };
   }
 
   const suite = suiteSure(String(donnees.get("suite") ?? ""));
@@ -89,7 +94,10 @@ export async function connecter(_etat: EtatFormulaire, donnees: FormData): Promi
 }
 
 /** CU00 – double authentification : code TOTP à 6 chiffres. */
-export async function verifierCode(_etat: EtatFormulaire, donnees: FormData): Promise<EtatFormulaire> {
+export async function verifierCode(
+  _etat: EtatFormulaire,
+  donnees: FormData,
+): Promise<EtatFormulaire> {
   const saisie = schemaCode.safeParse({ code: donnees.get("code") });
   if (!saisie.success) return { erreurs: erreursDeValidation(saisie.error) };
 
@@ -134,9 +142,14 @@ export async function demanderReinitialisation(
   const valeurs = { email: String(donnees.get("email") ?? "") };
   if (!saisie.success) return { erreurs: erreursDeValidation(saisie.error), valeurs };
   try {
-    await appelerApi("/auth/mot-de-passe-oublie", { methode: "POST", jeton: null, corps: saisie.data });
+    await appelerApi("/auth/mot-de-passe-oublie", {
+      methode: "POST",
+      jeton: null,
+      corps: saisie.data,
+    });
   } catch (erreur) {
-    if (estErreurApi(erreur) && erreur.status >= 500) return { message: erreur.messageUtilisateur, valeurs };
+    if (estErreurApi(erreur) && erreur.status >= 500)
+      return { message: erreur.messageUtilisateur, valeurs };
   }
   return {
     succes: true,
@@ -160,18 +173,24 @@ async function definirMotDePasse(
     await appelerApi(route, {
       methode: "POST",
       jeton: null,
-      corps: route === "/auth/activation"
-        ? { jeton, motDePasse: saisie.data.motDePasse }
-        : { jeton, nouveauMotDePasse: saisie.data.motDePasse },
+      corps:
+        route === "/auth/activation"
+          ? { jeton, motDePasse: saisie.data.motDePasse }
+          : { jeton, nouveauMotDePasse: saisie.data.motDePasse },
     });
   } catch (erreur) {
-    return { message: messageDe(erreur, "Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau.") };
+    return {
+      message: messageDe(erreur, "Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau."),
+    };
   }
   return { succes: true, message: "Mot de passe enregistré. Vous pouvez vous connecter." };
 }
 
 /** CU18 – nouveau mot de passe avec le lien reçu (usage unique, 30 min). */
-export async function reinitialiser(_etat: EtatFormulaire, donnees: FormData): Promise<EtatFormulaire> {
+export async function reinitialiser(
+  _etat: EtatFormulaire,
+  donnees: FormData,
+): Promise<EtatFormulaire> {
   return definirMotDePasse("/auth/reinitialisation", donnees);
 }
 

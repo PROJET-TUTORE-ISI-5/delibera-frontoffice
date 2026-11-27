@@ -12,9 +12,7 @@ export default function PageAudit() {
       description="Modifications, connexions et refus d'accès de l'école, en lecture seule."
       module="M9 – Audit"
       iteration={4}
-      cas={[
-        { code: "CU11", libelle: "Consulter le journal d'audit" },
-      ]}
+      cas={[{ code: "CU11", libelle: "Consulter le journal d'audit" }]}
       permissions={["AUDIT_CONSULTER"]}
       composants={["Timeline", "DataGrid", "DatePicker", "SearchHighlight"]}
     />

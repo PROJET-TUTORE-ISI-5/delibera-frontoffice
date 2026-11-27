@@ -45,7 +45,12 @@ export class ErreurApi extends Error {
   readonly probleme: ProblemDetail;
 
   constructor(probleme: ProblemDetail) {
-    super(probleme.detail ?? probleme.title ?? MESSAGES_PAR_STATUT[probleme.status] ?? "Erreur inattendue.");
+    super(
+      probleme.detail ??
+        probleme.title ??
+        MESSAGES_PAR_STATUT[probleme.status] ??
+        "Erreur inattendue.",
+    );
     this.name = "ErreurApi";
     this.status = probleme.status;
     this.code = probleme.code;
@@ -54,7 +59,11 @@ export class ErreurApi extends Error {
 
   /** Message à afficher à l'utilisateur (en français, sans détail technique). */
   get messageUtilisateur(): string {
-    return this.probleme.detail ?? MESSAGES_PAR_STATUT[this.status] ?? "Une erreur inattendue est survenue.";
+    return (
+      this.probleme.detail ??
+      MESSAGES_PAR_STATUT[this.status] ??
+      "Une erreur inattendue est survenue."
+    );
   }
 
   /** Erreurs de validation indexées par champ, pour React Hook Form. */

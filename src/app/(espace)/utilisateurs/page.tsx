@@ -12,9 +12,7 @@ export default function PageUtilisateurs() {
       description="Comptes de l'école, rôles affectés avec leur périmètre et leur période, activation par lien."
       module="M1 – Sécurité et accès"
       iteration={1}
-      cas={[
-        { code: "CU12", libelle: "Gérer les utilisateurs" },
-      ]}
+      cas={[{ code: "CU12", libelle: "Gérer les utilisateurs" }]}
       permissions={["UTILISATEUR_GERER"]}
       composants={["DataGrid", "Combobox", "Dialog", "DropdownMenu"]}
     />

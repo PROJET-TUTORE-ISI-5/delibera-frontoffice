@@ -13,7 +13,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { aUneDesPermissions, estDansUnJury, type CodePermission, type Habilitations } from "./permissions";
+import {
+  aUneDesPermissions,
+  estDansUnJury,
+  type CodePermission,
+  type Habilitations,
+} from "./permissions";
 import { ROUTES } from "./routes";
 
 export type ElementNavigation = {
@@ -147,6 +152,8 @@ export function hrefsVisibles(h: Habilitations): string[] {
 /** Entrée active pour une adresse : la plus longue qui la préfixe. */
 export function elementActif(chemin: string, hrefs: readonly string[]): string | undefined {
   return [...hrefs]
-    .filter((h) => (h === ROUTES.accueil ? chemin === h : chemin === h || chemin.startsWith(`${h}/`)))
+    .filter((h) =>
+      h === ROUTES.accueil ? chemin === h : chemin === h || chemin.startsWith(`${h}/`),
+    )
     .sort((a, b) => b.length - a.length)[0];
 }

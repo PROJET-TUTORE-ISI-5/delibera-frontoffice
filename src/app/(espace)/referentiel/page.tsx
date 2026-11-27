@@ -12,9 +12,7 @@ export default function PageReferentiel() {
       description="Années, semestres, cycles, filières et niveaux couverts, spécialités, classes, UE, EC et maquettes."
       module="M3 – Référentiel et maquettes"
       iteration={1}
-      cas={[
-        { code: "CU01", libelle: "Paramétrer le référentiel académique" },
-      ]}
+      cas={[{ code: "CU01", libelle: "Paramétrer le référentiel académique" }]}
       permissions={["REFERENTIEL_GERER"]}
       composants={["Tabs", "DataGrid", "Dialog", "Combobox", "Field"]}
     />

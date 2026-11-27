@@ -3,11 +3,7 @@ import { type NextRequest } from "next/server";
 
 import { config } from "@/lib/config";
 import { CODES_CLIENT, reponseProbleme } from "@/lib/api/probleme";
-import {
-  COOKIE_ACCES,
-  COOKIE_RENOUVELLEMENT,
-  cookiesDeSession,
-} from "@/lib/session/cookies";
+import { COOKIE_ACCES, COOKIE_RENOUVELLEMENT, cookiesDeSession } from "@/lib/session/cookies";
 import { renouvelerJetons } from "@/lib/session/renouvellement";
 
 /**
@@ -38,7 +34,11 @@ type Contexte = { params: Promise<{ chemin: string[] }> };
 async function relayer(request: NextRequest, { params }: Contexte): Promise<Response> {
   const { chemin } = await params;
 
-  if (chemin[0] !== "v1" || chemin[1] === "auth" || !chemin.every((s) => SEGMENT_VALIDE.test(s) && s !== "." && s !== "..")) {
+  if (
+    chemin[0] !== "v1" ||
+    chemin[1] === "auth" ||
+    !chemin.every((s) => SEGMENT_VALIDE.test(s) && s !== "." && s !== "..")
+  ) {
     return reponseProbleme({ status: 404, title: "Route inconnue" });
   }
 

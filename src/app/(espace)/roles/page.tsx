@@ -12,9 +12,7 @@ export default function PageRoles() {
       description="Rôles prédéfinis (lecture seule, duplicables) et rôles personnalisés de l'école."
       module="M1 – Sécurité et accès"
       iteration={1}
-      cas={[
-        { code: "CU16", libelle: "Gérer les rôles et les permissions" },
-      ]}
+      cas={[{ code: "CU16", libelle: "Gérer les rôles et les permissions" }]}
       permissions={["ROLE_GERER"]}
       composants={["DataGrid", "CheckboxTree", "Dialog"]}
     />

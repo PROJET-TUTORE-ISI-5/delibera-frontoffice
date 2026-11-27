@@ -12,9 +12,7 @@ export default function PageEcoles() {
       description="Création, suspension et réactivation des écoles et de leur premier administrateur."
       module="M2 – Écoles clientes"
       iteration={1}
-      cas={[
-        { code: "CU15", libelle: "Gérer les écoles clientes" },
-      ]}
+      cas={[{ code: "CU15", libelle: "Gérer les écoles clientes" }]}
       permissions={["ECOLE_GERER"]}
       composants={["Tabs", "StatCard", "Chart", "DataGrid"]}
     />
